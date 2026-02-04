@@ -1,303 +1,163 @@
 /**
- * RUTA MARIJOSE JHIRE v13 - LÓGICA COMPLETA
- * Incluye: GPS Alta Precisión, Gráficos, Agenda Semanal, Speech WhatsApp.
+ * RUTA MARIJOSE JHIRE v13.1 - SISTEMA COMPLETO
+ * Visitador Médico & Control de Ventas
  */
 
 // ==========================================
-// 1. CONFIGURACIÓN Y DATOS GEOGRÁFICOS
+// 1. DATOS GEOGRÁFICOS
 // ==========================================
-
 const LISTA_DEPARTAMENTOS = [
-    "Alta Verapaz", "Baja Verapaz", "Chimaltenango", "Chiquimula", "El Progreso", 
-    "Escuintla", "Guatemala", "Huehuetenango", "Izabal", "Jalapa", "Jutiapa", 
-    "Petén", "Quetzaltenango", "Quiché", "Retalhuleu", "Sacatepéquez", "San Marcos", 
-    "Santa Rosa", "Sololá", "Suchitepéquez", "Totonicapán", "Zacapa"
+    "Guatemala", "Sacatepéquez", "Chimaltenango", "El Progreso", "Escuintla", 
+    "Santa Rosa", "Sololá", "Totonicapán", "Quetzaltenango", "Suchitepéquez", 
+    "Retalhuleu", "San Marcos", "Huehuetenango", "Quiché", "Baja Verapaz", 
+    "Alta Verapaz", "Petén", "Izabal", "Zacapa", "Chiquimula", "Jalapa", "Jutiapa"
 ];
 
-// (Puedes ampliar esta lista con tus municipios reales)
 const MUNICIPIOS_POR_DEPARTAMENTO = {
-    "Guatemala": ["Guatemala", "Mixco", "Villa Nueva", "Santa Catarina Pinula", "San Miguel Petapa", "Chinautla"],
-    "Quetzaltenango": ["Quetzaltenango", "Salcajá", "Olintepeque", "Coatepeque", "San Juan Ostuncalco", "Almolonga"],
-    "Escuintla": ["Escuintla", "Santa Lucía Cotzumalguapa", "Palín", "Siquinalá", "Puerto San José"],
-    "Sacatepéquez": ["Antigua Guatemala", "San Lucas", "Jocotenango", "Ciudad Vieja", "Sumpango"],
-    "Chimaltenango": ["Chimaltenango", "El Tejar", "Patzicía", "Tecpán", "Patzún"],
-    "San Marcos": ["San Marcos", "San Pedro Sacatepéquez", "Malacatán", "Ayutla"],
-    "Huehuetenango": ["Huehuetenango", "Chiantla", "Malacatancito"],
-    "Retalhuleu": ["Retalhuleu", "San Sebastián", "Champerico"],
-    "Suchitepéquez": ["Mazatenango", "Cuyotenango", "San Antonio"],
-    "Totonicapán": ["Totonicapán", "San Cristóbal", "San Francisco El Alto"],
-    "Sololá": ["Sololá", "Panajachel", "Nahualá"],
-    "Quiché": ["Santa Cruz del Quiché", "Chichicastenango"],
-    "Alta Verapaz": ["Cobán", "San Pedro Carchá"],
-    "Baja Verapaz": ["Salamá", "San Jerónimo"],
-    "Izabal": ["Puerto Barrios", "Morales"],
-    "Zacapa": ["Zacapa", "Estanzuela"],
-    "Chiquimula": ["Chiquimula", "Esquipulas"],
-    "Jalapa": ["Jalapa", "San Pedro Pinula"],
-    "Jutiapa": ["Jutiapa", "Asunción Mita"],
-    "Santa Rosa": ["Cuilapa", "Barberena"],
-    "El Progreso": ["Guastatoya", "Sanarate"],
-    "Petén": ["Flores", "San Benito"]
+    "Guatemala": ["Guatemala", "Mixco", "Villa Nueva", "Santa Catarina Pinula", "San Miguel Petapa", "Chinautla", "Amatitlán", "Fraijanes"],
+    "Quetzaltenango": ["Quetzaltenango", "Salcajá", "Olintepeque", "Coatepeque", "San Juan Ostuncalco", "Almolonga", "Cantel", "Zunil", "La Esperanza", "San Mateo"],
+    "Escuintla": ["Escuintla", "Santa Lucía Cotzumalguapa", "Palín", "Siquinalá", "Puerto San José", "La Democracia", "Masagua"],
+    "Sacatepéquez": ["Antigua Guatemala", "San Lucas", "Jocotenango", "Ciudad Vieja", "Sumpango", "Santiago", "Pastores"],
+    "Chimaltenango": ["Chimaltenango", "El Tejar", "Patzicía", "Tecpán", "Patzún", "San Andrés Itzapa"],
+    "San Marcos": ["San Marcos", "San Pedro Sacatepéquez", "Malacatán", "Ayutla", "Catarina", "El Tumbador"],
+    "Huehuetenango": ["Huehuetenango", "Chiantla", "Malacatancito", "Cuilco", "La Democracia"],
+    "Retalhuleu": ["Retalhuleu", "San Sebastián", "Champerico", "Santa Cruz Muluá"],
+    "Suchitepéquez": ["Mazatenango", "Cuyotenango", "San Antonio", "Patulul"],
+    "Totonicapán": ["Totonicapán", "San Cristóbal", "San Francisco El Alto", "Momostenango"],
+    "Sololá": ["Sololá", "Panajachel", "Nahualá", "Santiago Atitlán", "San Lucas Tolimán"],
+    "Quiché": ["Santa Cruz del Quiché", "Chichicastenango", "Joyabaj", "Nebaj"],
+    "Alta Verapaz": ["Cobán", "San Pedro Carchá", "San Juan Chamelco", "San Cristóbal Verapaz"],
+    "Baja Verapaz": ["Salamá", "San Jerónimo", "Purulhá"],
+    "Izabal": ["Puerto Barrios", "Morales", "Livingston", "El Estor"],
+    "Zacapa": ["Zacapa", "Estanzuela", "Río Hondo", "Teculután"],
+    "Chiquimula": ["Chiquimula", "Esquipulas", "Jocotán", "Quezaltepeque"],
+    "Jalapa": ["Jalapa", "San Pedro Pinula", "Mataquescuintla"],
+    "Jutiapa": ["Jutiapa", "Asunción Mita", "Moyuta"],
+    "Santa Rosa": ["Cuilapa", "Barberena", "Chiquimulilla", "Taxisco"],
+    "El Progreso": ["Guastatoya", "Sanarate", "San Agustín"],
+    "Petén": ["Flores", "San Benito", "Santa Elena", "Poptún", "Sayaxché"]
 };
 
-// --- BASES DE DATOS ---
+// ==========================================
+// 2. ESTADO Y BASES DE DATOS
+// ==========================================
 let db = JSON.parse(localStorage.getItem('db_clientes_v13')) || [];
 let db_ventas = JSON.parse(localStorage.getItem('db_ventas_v13')) || [];
 let db_abonos = JSON.parse(localStorage.getItem('db_abonos_v13')) || [];
 let ruta = JSON.parse(localStorage.getItem('db_ruta_v13')) || [];
 
-// Configuración de Usuario
-let userConfig = JSON.parse(localStorage.getItem('config_marijose_v13')) || {
-    nombreVendedor: "Visitador Médico",
-    metaMensual: 15000,
+// Configuración Persistente
+let userConfig = JSON.parse(localStorage.getItem('config_marijose_v13')) || { 
+    nombreVendedor: "Droguería Marijose", 
+    metaMensual: 15000, 
     googleUrl: "",
-    misProductos: ["Amoxicilina 500mg", "Pack Antibióticos", "Vitamina C + Zinc", "Gastrozol 20mg", "Neurobión Inyectable"]
+    misProductos: ["Amoxicilina 500mg", "Pack Antibióticos", "Vitamina C + Zinc", "Gastrozol 20mg", "Neurobión Inyectable"] 
 };
 
 let debounceTimer;
 
 // ==========================================
-// 2. INICIALIZACIÓN
+// 3. INICIALIZACIÓN
 // ==========================================
-
 document.addEventListener("DOMContentLoaded", () => {
     cargarDepartamentosEnSelects();
     cargarConfiguracionUI();
-    actualizarReloj();
+    document.getElementById('fecha-header').textContent = new Date().toLocaleDateString('es-GT', { weekday: 'long', day: 'numeric', month: 'long' });
     
-    // Verificar vencimientos al iniciar
+    // Verificar vencimientos al arrancar
     verificarFacturasVencidas();
-
-    // Iniciar en Dashboard
+    
+    // Vista inicial
     mostrar('view-dashboard');
 });
 
-function actualizarReloj() {
-    const opciones = { weekday: 'long', day: 'numeric', month: 'long' };
-    document.getElementById('fecha-header').textContent = new Date().toLocaleDateString('es-GT', opciones);
-}
-
-function cargarConfiguracionUI() {
-    document.getElementById('configNombreVendedor').value = userConfig.nombreVendedor;
-    document.getElementById('configMeta').value = userConfig.metaMensual;
-    if(document.getElementById('googleScriptUrl')) document.getElementById('googleScriptUrl').value = userConfig.googleUrl;
-    
-    // Llenar Datalist de productos
-    actualizarListaProductos();
-}
-
-function actualizarListaProductos() {
-    const datalist = document.getElementById('lista-productos');
-    datalist.innerHTML = '';
-    userConfig.misProductos.forEach(prod => {
-        datalist.innerHTML += `<option value="${prod}">`;
-    });
-}
-
 // ==========================================
-// 3. NAVEGACIÓN Y VISTAS
+// 4. NAVEGACIÓN
 // ==========================================
-
 function mostrar(viewId) {
     document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
     document.getElementById(viewId).classList.remove('hidden');
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     
-    // Activar botón menú
-    if(viewId.includes('dashboard')) document.getElementById('nav-home').classList.add('active');
+    if(viewId.includes('dashboard')) { 
+        document.getElementById('nav-home').classList.add('active'); 
+        renderDashboard(); 
+    }
     if(viewId.includes('agenda')) { 
         document.getElementById('nav-agenda').classList.add('active'); 
         renderAgenda(); 
     }
-    if(viewId.includes('ruta')) {
-        document.getElementById('nav-ruta').classList.add('active');
-        renderRuta();
+    if(viewId.includes('ruta')) { 
+        document.getElementById('nav-ruta').classList.add('active'); 
+        renderRuta(); 
     }
-    if(viewId.includes('finanzas')) {
-        document.getElementById('nav-finanzas').classList.add('active');
-        actualizarGraficoFinanciero();
-        renderVencidos();
+    if(viewId.includes('finanzas')) { 
+        document.getElementById('nav-finanzas').classList.add('active'); 
+        actualizarGraficoFinanciero(); 
+        renderVencidos(); 
     }
-    if(viewId.includes('reportes')) document.getElementById('nav-rep').classList.add('active');
-
-    // Si vuelve al dashboard, refrescar
-    if(viewId === 'view-dashboard') renderDashboard();
+    if(viewId.includes('reportes')) { 
+        document.getElementById('nav-rep').classList.add('active'); 
+    }
 }
 
 // ==========================================
-// 4. CLIENTES (DASHBOARD)
+// 5. DASHBOARD & CRUD CLIENTES
 // ==========================================
-
 function renderDashboard() {
-    const contenedor = document.getElementById('listaClientes');
-    const busqueda = document.getElementById('buscadorDashboard').value.toLowerCase();
-    const filtroTipo = document.getElementById('filtroTipo').value;
-
-    let datos = db.filter(c => !c.eliminado);
-
-    // Filtro por Tipo (Farmacia/Clínica)
-    if(filtroTipo) {
-        datos = datos.filter(c => c.tipo === filtroTipo);
-    }
-
-    // Filtro por Texto
-    if(busqueda) {
-        datos = datos.filter(c => 
-            (c.negocio && c.negocio.toLowerCase().includes(busqueda)) ||
-            (c.encargado && c.encargado.toLowerCase().includes(busqueda))
-        );
-    }
-
-    // Ordenar
-    datos.sort((a,b) => (a.departamento + a.negocio).localeCompare(b.departamento + b.negocio));
-
-    // Stats
-    document.getElementById('statTotal').textContent = datos.length;
-    document.getElementById('statHoy').textContent = datos.filter(c => c.ultimaVisita === obtenerFechaLocal()).length;
-
-    if(datos.length === 0) {
-        contenedor.innerHTML = '';
-        document.getElementById('msgVacio').classList.remove('hidden');
-        return;
-    }
+    const list = document.getElementById('listaClientes');
+    const term = document.getElementById('buscadorDashboard').value.toLowerCase();
+    const tipo = document.getElementById('filtroTipo').value;
+    
+    let data = db.filter(c => !c.eliminado);
+    if(tipo) data = data.filter(c => c.tipo === tipo);
+    if(term) data = data.filter(c => 
+        (c.negocio && c.negocio.toLowerCase().includes(term)) || 
+        (c.encargado && c.encargado.toLowerCase().includes(term))
+    );
+    
+    data.sort((a,b) => (a.departamento+a.negocio).localeCompare(b.departamento+b.negocio));
+    
+    document.getElementById('statTotal').textContent = data.length;
+    document.getElementById('statHoy').textContent = data.filter(c => c.ultimaVisita === obtenerFechaLocal()).length;
+    
+    list.innerHTML = '';
+    if(data.length===0) { document.getElementById('msgVacio').classList.remove('hidden'); return; }
     document.getElementById('msgVacio').classList.add('hidden');
 
-    let html = '';
     const hoy = new Date();
-
-    datos.forEach(c => {
-        // Cálculo Mapa de Calor
+    data.forEach(c => {
+        // Icono
+        const icon = c.tipo === 'CLINICA' ? '🩺' : (c.tipo === 'FARMACIA' ? '💊' : '🏪');
+        // Mapa de calor
         const ultima = new Date(c.ultimaVisita || '2000-01-01');
-        const diffDias = Math.floor((hoy - ultima) / (1000 * 60 * 60 * 24));
-        let colorBorde = diffDias > 30 ? 'border-red' : (diffDias > 15 ? 'border-yellow' : 'border-green');
-        
-        // Icono según tipo
-        let iconoTipo = c.tipo === 'CLINICA' ? '🩺' : (c.tipo === 'FARMACIA' ? '💊' : '🏪');
+        const diff = Math.floor((hoy - ultima) / (1000 * 60 * 60 * 24));
+        const borde = diff > 30 ? 'border-red' : (diff > 15 ? 'border-yellow' : 'border-green');
         const enRuta = ruta.includes(c.id);
 
-        html += `
-        <div class="card ${colorBorde}" onclick="if(!event.target.closest('button')) editarCliente(${c.id})">
+        list.innerHTML += `
+        <div class="card ${borde}" onclick="if(!event.target.closest('button')) editarCliente(${c.id})">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="flex:1;">
-                    <div style="font-size:0.7em; color:#64748b; font-weight:bold;">
-                        ${iconoTipo} ${c.tipo || 'GENERAL'} • ${c.departamento}
-                    </div>
+                    <div style="font-size:0.7em; color:#64748b; font-weight:bold;">${icon} ${c.tipo || 'GENERAL'} • ${c.departamento}</div>
                     <h3 style="margin:5px 0; border:none; padding:0;">${c.negocio}</h3>
-                    <div style="font-size:0.85em; color:#475569;">👤 ${c.encargado || 'Sin encargado'}</div>
-                    <div style="font-size:0.75em; color:#94a3b8; margin-top:2px;">Hace ${diffDias} días</div>
+                    <div style="font-size:0.85em; color:#475569;">👤 ${c.encargado || 'S/N'}</div>
+                    <div style="font-size:0.75em; color:#94a3b8;">Hace ${diff} días</div>
                 </div>
-                
                 <div style="display:flex; flex-direction:column; gap:8px; margin-left:10px;">
-                    <button class="btn-icon" style="background:#25D366;" onclick="abrirWhatsApp(${c.id})">💬</button>
-                    
-                    <button class="btn-icon" style="background:${enRuta?'#ef4444':'#cbd5e1'}" onclick="toggleRuta(${c.id})">
-                        ${enRuta ? '🚫' : '🚚'}
-                    </button>
+                    <button class="btn-icon" style="background:#25D366" onclick="abrirWhatsApp(${c.id})">💬</button>
+                    <button class="btn-icon" style="background:${enRuta?'#ef4444':'#cbd5e1'}" onclick="toggleRuta(${c.id})">${enRuta?'🚫':'🚚'}</button>
                     <button class="btn-icon btn-info" onclick="abrirModalVenta(${c.id}, '${c.negocio}')">💰</button>
                 </div>
             </div>
         </div>`;
     });
-    contenedor.innerHTML = html;
 }
 
-function debounceBuscar() { clearTimeout(debounceTimer); debounceTimer = setTimeout(renderDashboard, 300); }
-
-// ==========================================
-// 5. GESTIÓN DE CLIENTES Y GPS ALTA PRECISIÓN
-// ==========================================
-
-function nuevoCliente() {
-    limpiarFormulario();
-    document.getElementById('tituloForm').textContent = "Nuevo Cliente";
-    mostrar('view-form');
-}
-
-function toggleCamposMedicos() {
-    const tipo = document.getElementById('tipoNegocio').value;
-    const div = document.getElementById('camposMedicos');
-    if(tipo === 'CLINICA') div.classList.remove('hidden');
-    else div.classList.add('hidden');
-}
-
-// --- GPS ALTA PRECISIÓN ---
-function capturarGPSAltaPrecision() {
-    const btn = event.target; 
-    const inputDisplay = document.getElementById('gpsDisplay');
-    const txtOriginal = btn.innerHTML;
-    
-    if(!navigator.geolocation) { alert("Tu dispositivo no tiene GPS."); return; }
-
-    btn.innerHTML = "⏳"; // Icono de espera
-    inputDisplay.value = "Calibrando satélites (3s)...";
-    inputDisplay.style.background = "#fff7ed"; // Naranja suave
-
-    // Esperamos 3 segundos para que el sensor del celular se estabilice
-    setTimeout(() => {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                const accuracy = pos.coords.accuracy; // Precisión en metros
-
-                document.getElementById('lat').value = lat;
-                document.getElementById('lng').value = lng;
-                
-                inputDisplay.value = `${lat.toFixed(5)}, ${lng.toFixed(5)} (±${Math.round(accuracy)}m)`;
-                inputDisplay.style.background = "#f0fdf4"; // Verde suave
-                btn.innerHTML = "✅";
-                alert(`📍 Ubicación capturada con precisión de ${Math.round(accuracy)} metros.`);
-            },
-            (err) => {
-                inputDisplay.value = "Error al capturar";
-                btn.innerHTML = "❌";
-                alert("Error GPS: " + err.message);
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-    }, 3000); // 3 segundos de delay intencional
-}
-
-function guardarCliente() {
-    const id = document.getElementById('idCliente').value;
-    const negocio = document.getElementById('negocio').value;
-    
-    if(!negocio) { alert("El nombre del negocio es obligatorio"); return; }
-
-    const datos = {
-        id: id ? parseInt(id) : Date.now(),
-        tipo: document.getElementById('tipoNegocio').value,
-        negocio: negocio,
-        especialidad: document.getElementById('especialidad').value,
-        horario: document.getElementById('horarioVisita').value,
-        departamento: document.getElementById('departamento').value,
-        municipio: document.getElementById('municipio').value,
-        direccion: document.getElementById('direccion').value,
-        telefono: document.getElementById('telefono').value,
-        encargado: document.getElementById('encargado').value,
-        diaPreferido: document.getElementById('diaVisita').value,
-        lat: document.getElementById('lat').value,
-        lng: document.getElementById('lng').value,
-        eliminado: false,
-        ultimaVisita: obtenerFechaLocal() // Se actualiza al crear/editar
-    };
-
-    if(id) {
-        const idx = db.findIndex(c => c.id == id);
-        if(idx >= 0) db[idx] = {...db[idx], ...datos}; // Mantener datos viejos si los hay
-    } else {
-        db.push(datos);
-    }
-
-    guardarDB();
-    alert("✅ Cliente guardado");
-    mostrar('view-dashboard');
-}
+function nuevoCliente() { limpiarForm(); document.getElementById('tituloForm').textContent="Nuevo"; mostrar('view-form'); }
 
 function editarCliente(id) {
     const c = db.find(x => x.id === id);
-    if(!c) return;
-
     document.getElementById('idCliente').value = c.id;
     document.getElementById('tipoNegocio').value = c.tipo || 'FARMACIA';
     toggleCamposMedicos();
@@ -313,285 +173,339 @@ function editarCliente(id) {
     document.getElementById('diaVisita').value = c.diaPreferido || '';
     document.getElementById('lat').value = c.lat || '';
     document.getElementById('lng').value = c.lng || '';
-    
-    // Estado Visual del GPS
-    const gpsInput = document.getElementById('gpsDisplay');
-    if(c.lat && c.lat !== 'MANUAL') {
-        gpsInput.value = `${parseFloat(c.lat).toFixed(5)}, ${parseFloat(c.lng).toFixed(5)}`;
-        gpsInput.style.background = "#f0fdf4";
-    } else {
-        gpsInput.value = "No configurado";
-        gpsInput.style.background = "#f1f5f9";
-    }
-
-    document.getElementById('tituloForm').textContent = "Editar Cliente";
+    document.getElementById('gpsDisplay').value = c.lat ? `${parseFloat(c.lat).toFixed(4)}, ${parseFloat(c.lng).toFixed(4)}` : "Sin GPS";
     mostrar('view-form');
 }
 
-// ==========================================
-// 6. WHATSAPP INTELIGENTE (SPEECH)
-// ==========================================
-
-function abrirWhatsApp(idCliente) {
-    const c = db.find(x => x.id === idCliente);
-    if(!c || !c.telefono) { alert("Este cliente no tiene teléfono."); return; }
-
-    const nombreVendedor = userConfig.nombreVendedor || "Droguería Marijose Jhire";
-    const encargado = c.encargado || "Encargado";
-    const negocio = c.negocio;
-    const prefijo = (c.encargado && c.encargado.toLowerCase().includes('dr')) ? "" : "estimado/a";
-
-    // EL SPEECH GENERADO
-    let mensaje = `Hola ${prefijo} *${encargado}*, le saluda *${nombreVendedor}* de *Droguería Marijose Jhire*.%0A%0A`;
-    mensaje += `Le escribo para consultar existencias en *${negocio}* y coordinar la reposición de productos de esta semana.%0A%0A`;
-    mensaje += `¿Le gustaría que pase visitándole? Quedo a la espera, saludos.`;
-
-    // Abrir API WhatsApp
-    let numero = c.telefono.replace(/\D/g,''); // Solo números
-    if(numero.length === 8) numero = "502" + numero; // Agregar código país GT
+function guardarCliente() {
+    const id = document.getElementById('idCliente').value;
+    const n = document.getElementById('negocio').value;
+    if(!n) { alert("Nombre requerido"); return; }
     
-    window.open(`https://wa.me/${numero}?text=${mensaje}`, '_blank');
+    const d = {
+        id: id ? parseInt(id) : Date.now(),
+        tipo: document.getElementById('tipoNegocio').value,
+        negocio: n,
+        especialidad: document.getElementById('especialidad').value,
+        horario: document.getElementById('horarioVisita').value,
+        departamento: document.getElementById('departamento').value,
+        municipio: document.getElementById('municipio').value,
+        direccion: document.getElementById('direccion').value,
+        telefono: document.getElementById('telefono').value,
+        encargado: document.getElementById('encargado').value,
+        diaPreferido: document.getElementById('diaVisita').value,
+        lat: document.getElementById('lat').value,
+        lng: document.getElementById('lng').value,
+        eliminado: false,
+        ultimaVisita: obtenerFechaLocal()
+    };
+    
+    if(id) { const i = db.findIndex(x=>x.id==id); db[i] = {...db[i], ...d}; } else { db.push(d); }
+    guardarDB(); alert("Guardado"); mostrar('view-dashboard');
+}
+
+function capturarGPSAltaPrecision() {
+    const btn = event.target;
+    const txt = document.getElementById('gpsDisplay');
+    if(!navigator.geolocation) { alert("Sin GPS"); return; }
+    
+    btn.innerHTML = "⏳"; txt.value = "Calibrando (3s)...";
+    // Delay de 3 segundos para mejorar precisión
+    setTimeout(() => {
+        navigator.geolocation.getCurrentPosition(p => {
+            document.getElementById('lat').value = p.coords.latitude;
+            document.getElementById('lng').value = p.coords.longitude;
+            txt.value = `${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)} (±${Math.round(p.coords.accuracy)}m)`;
+            btn.innerHTML = "✅";
+        }, e => { alert(e.message); btn.innerHTML = "📡"; txt.value = "Error"; }, 
+        { enableHighAccuracy: true });
+    }, 3000);
 }
 
 // ==========================================
-// 7. FINANZAS Y GRÁFICO
+// 6. WHATSAPP SPEECH (MEJORADO)
+// ==========================================
+function abrirWhatsApp(id) {
+    const c = db.find(x => x.id === id);
+    if(!c || !c.telefono) { alert("Sin teléfono"); return; }
+    
+    const vendedor = userConfig.nombreVendedor;
+    const encargado = c.encargado || "Encargado";
+    const negocio = c.negocio;
+    
+    let titulo = "estimado/a";
+    if(encargado.toLowerCase().includes("dr")) titulo = "";
+    if(encargado.toLowerCase().includes("lic")) titulo = "";
+
+    // PLANTILLA ESPECÍFICA MARIJOSE JHIRE
+    let msg = `Hola ${titulo} *${encargado}*, le saluda *${vendedor}* de *Droguería Marijose Jhire*.%0A%0A`;
+    msg += `Le escribo para consultar existencias en *${negocio}* y coordinar la reposición de productos de esta semana.%0A%0A`;
+    msg += `Quedo a la espera de su confirmación. Saludos.`;
+
+    let num = c.telefono.replace(/\D/g,'');
+    if(num.length === 8) num = "502" + num;
+    window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
+}
+
+// ==========================================
+// 7. PLANIFICACIÓN DE RUTA (LÓGICA)
 // ==========================================
 
-function actualizarGraficoFinanciero() {
-    const mes = new Date().getMonth();
-    const anio = new Date().getFullYear();
+// CARGAR POR DEPARTAMENTO (Con ordenamiento lógico por municipio)
+function cargarRutaPorDepto() {
+    const depto = document.getElementById('planDepto').value;
+    if(!depto) { alert("Selecciona departamento"); return; }
     
-    let cobrado = 0;
-    let creditoVigente = 0;
-    let creditoVencido = 0;
-    const hoy = new Date();
+    if(!confirm(`¿Cargar ruta de ${depto}? Reemplazará la actual.`)) return;
+    
+    let clientes = db.filter(c => c.departamento === depto && !c.eliminado);
+    if(clientes.length === 0) { alert("No hay clientes"); return; }
+    
+    // ORDENAR: Primero por Municipio, luego por Negocio (Agrupación Lógica)
+    clientes.sort((a,b) => {
+        if(a.municipio === b.municipio) return a.negocio.localeCompare(b.negocio);
+        return (a.municipio || "").localeCompare(b.municipio || "");
+    });
+    
+    ruta = clientes.map(c => c.id);
+    guardarDB();
+    alert(`✅ Ruta cargada con ${ruta.length} clientes de ${depto} (Ordenados por Municipio).`);
+    mostrar('view-ruta');
+}
 
-    // Calcular montos
-    db_ventas.forEach(v => {
-        const saldo = v.saldoPendiente !== undefined ? v.saldoPendiente : v.monto;
+// AGENDA SEMANAL
+function renderAgenda() {
+    const div = document.getElementById('agendaContainer');
+    const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    div.innerHTML = '';
+    
+    dias.forEach(dia => {
+        const clientes = db.filter(c => c.diaPreferido === dia && !c.eliminado);
+        const farm = clientes.filter(c => c.tipo === 'FARMACIA').length;
+        const clin = clientes.filter(c => c.tipo === 'CLINICA').length;
         
-        // Cobrado (Ventas Contado + Abonos)
-        if(v.tipo === 'CONTADO' && new Date(v.fechaVenta).getMonth() === mes) cobrado += v.monto;
+        div.innerHTML += `
+        <div class="agenda-day-card" onclick="cargarRutaDia('${dia}')" style="cursor:pointer; background:white; padding:15px; border-radius:10px; margin-bottom:10px; border:1px solid #e0e7ff; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div style="font-weight:bold; color:#4338ca;">${dia}</div>
+                <div style="font-size:0.8em; color:#6b7280;">${clientes.length} Clientes (💊${farm} 🩺${clin})</div>
+            </div>
+            <button class="btn-icon" style="background:#eef2ff; color:#4338ca;">➡️</button>
+        </div>`;
+    });
+}
+
+function cargarRutaDia(dia) {
+    const clientes = db.filter(c => c.diaPreferido === dia && !c.eliminado);
+    if(clientes.length === 0) { alert("Día vacío"); return; }
+    if(confirm(`¿Cargar ruta del ${dia}?`)) {
+        ruta = clientes.map(c => c.id);
+        guardarDB(); mostrar('view-ruta');
+    }
+}
+
+// RUTA ACTIVA
+function renderRuta() {
+    const div = document.getElementById('listaRutaContainer');
+    const info = document.getElementById('rutaInfo');
+    const lista = db.filter(c => ruta.includes(c.id));
+    
+    info.textContent = `${lista.length} clientes`;
+    div.innerHTML = '';
+    
+    if(lista.length === 0) { div.innerHTML = '<p class="msg-vacio">Ruta vacía</p>'; return; }
+    
+    lista.forEach((c, idx) => {
+        const url = (c.lat && c.lat !== 'MANUAL') ? `https://www.google.com/maps/dir/0{c.lat},${c.lng}` : '';
+        const btnMap = url ? `<button class="btn btn-sm btn-info" onclick="window.open('${url}')">🗺️</button>` : '';
         
-        // Créditos
-        if(v.estado === 'PENDIENTE') {
-            const fechaVenc = new Date(v.fechaVencimiento);
-            if(fechaVenc < hoy) {
-                creditoVencido += saldo;
-            } else {
-                creditoVigente += saldo;
+        div.innerHTML += `
+        <div class="card card-ruta" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <strong style="font-size:1.1em;">${idx+1}. ${c.negocio}</strong>
+                <div style="font-size:0.8em; color:#555;">${c.municipio || c.departamento}</div>
+            </div>
+            <div style="display:flex; gap:5px;">
+                ${btnMap}
+                <button class="btn btn-sm btn-success" onclick="abrirModalVenta(${c.id}, '${c.negocio}')">💰</button>
+                <button class="btn btn-sm btn-danger" onclick="quitarDeRuta(${c.id})">✕</button>
+            </div>
+        </div>`;
+    });
+}
+
+function quitarDeRuta(id) {
+    const i = ruta.indexOf(id); if(i>-1) ruta.splice(i,1); guardarDB(); renderRuta();
+}
+function limpiarRuta() { if(confirm("¿Vaciar?")) { ruta = []; guardarDB(); renderRuta(); } }
+
+function optimizarRutaGPS() {
+    const clientesGPS = db.filter(c => ruta.includes(c.id) && c.lat && c.lat !== 'MANUAL');
+    if(clientesGPS.length < 2) { alert("Faltan clientes con GPS"); return; }
+    
+    alert("Calculando...");
+    navigator.geolocation.getCurrentPosition(pos => {
+        let curr = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        let ordered = [];
+        let pending = [...clientesGPS];
+        
+        while(pending.length > 0) {
+            let nearest = null; let minD = Infinity; let idx = -1;
+            for(let i=0; i<pending.length; i++) {
+                const d = Math.sqrt(Math.pow(pending[i].lat - curr.lat, 2) + Math.pow(pending[i].lng - curr.lng, 2));
+                if(d < minD) { minD = d; nearest = pending[i]; idx = i; }
+            }
+            if(nearest) {
+                ordered.push(nearest.id);
+                curr = { lat: parseFloat(nearest.lat), lng: parseFloat(nearest.lng) };
+                pending.splice(idx, 1);
             }
         }
+        const noGPS = db.filter(c => ruta.includes(c.id) && (!c.lat || c.lat === 'MANUAL')).map(c => c.id);
+        ruta = [...ordered, ...noGPS];
+        guardarDB(); renderRuta(); alert("Ruta optimizada");
     });
+}
 
-    // Sumar abonos del mes al cobrado
-    db_abonos.forEach(a => {
-        if(new Date(a.fecha).getMonth() === mes) cobrado += a.monto;
+function abrirMapaRuta() {
+    if(ruta.length === 0) return;
+    // Abrir primer cliente
+    const c = db.find(x => x.id === ruta[0]);
+    if(c && c.lat) window.open(`https://www.google.com/maps/dir/1{c.lat},${c.lng}`);
+    else alert("Primer cliente sin GPS");
+}
+
+// ==========================================
+// 8. FINANZAS Y CRONOGRAMA DE PAGOS
+// ==========================================
+function actualizarGraficoFinanciero() {
+    const mes = new Date().getMonth();
+    const hoy = new Date();
+    let cobrado = 0, vigente = 0, vencido = 0;
+
+    db_ventas.forEach(v => {
+        let saldo = v.saldoPendiente !== undefined ? v.saldoPendiente : v.monto;
+        if(v.tipo === 'CONTADO' && new Date(v.fechaVenta).getMonth() === mes) cobrado += v.monto;
+        if(v.estado === 'PENDIENTE') {
+            if(new Date(v.fechaVencimiento) < hoy) vencido += saldo;
+            else vigente += saldo;
+        }
     });
+    db_abonos.forEach(a => { if(new Date(a.fecha).getMonth() === mes) cobrado += a.monto; });
 
-    // Actualizar Textos
     document.getElementById('finCobrado').textContent = `Q${cobrado.toFixed(2)}`;
-    document.getElementById('finCredito').textContent = `Q${(creditoVigente + creditoVencido).toFixed(2)}`;
+    document.getElementById('finCredito').textContent = `Q${(vigente+vencido).toFixed(2)}`;
 
-    // DIBUJAR GRÁFICO DE DONA (CSS CONIC GRADIENT)
-    const total = cobrado + creditoVigente + creditoVencido;
-    const pCobrado = total > 0 ? (cobrado / total) * 100 : 0;
-    const pVigente = total > 0 ? (creditoVigente / total) * 100 : 0;
-    const pVencido = total > 0 ? (creditoVencido / total) * 100 : 0;
-
-    // Actualizar Texto Central
-    document.getElementById('txtPorcentajeCobro').textContent = Math.round(pCobrado) + '%';
-
-    // Actualizar Colores Dona
-    const chart = document.getElementById('graficoFinanciero');
-    // Sintaxis: Verde 0% hasta X%, Naranja X% hasta Y%, Rojo Y% hasta 100%
-    const finVerde = pCobrado;
-    const finNaranja = pCobrado + pVigente;
+    const total = cobrado + vigente + vencido;
+    const pCob = total > 0 ? (cobrado/total)*100 : 0;
+    const pVig = total > 0 ? (vigente/total)*100 : 0;
     
-    chart.style.background = `conic-gradient(
-        var(--success) 0% ${finVerde}%, 
-        var(--accent) ${finVerde}% ${finNaranja}%, 
-        var(--danger) ${finNaranja}% 100%
-    )`;
+    document.getElementById('txtPorcentajeCobro').textContent = Math.round(pCob) + '%';
+    document.getElementById('graficoFinanciero').style.background = 
+        `conic-gradient(var(--success) 0% ${pCob}%, var(--accent) ${pCob}% ${pCob+pVig}%, var(--danger) ${pCob+pVig}% 100%)`;
 }
 
 function verificarFacturasVencidas() {
     const hoy = new Date().toISOString().split('T')[0];
-    const vencidas = db_ventas.filter(v => v.estado === 'PENDIENTE' && v.fechaVencimiento < hoy);
-    
-    const badge = document.getElementById('alertaCobros');
-    const num = document.getElementById('cantVencidas');
-    
-    if(vencidas.length > 0) {
-        badge.classList.remove('hidden');
-        num.textContent = vencidas.length;
-    } else {
-        badge.classList.add('hidden');
-    }
+    const n = db_ventas.filter(v => v.estado === 'PENDIENTE' && v.fechaVencimiento < hoy).length;
+    const b = document.getElementById('alertaCobros');
+    if(n > 0) { b.classList.remove('hidden'); document.getElementById('cantVencidas').textContent = n; }
+    else b.classList.add('hidden');
 }
 
 function renderVencidos() {
-    const div = document.getElementById('listaVencidos');
-    const msg = document.getElementById('msgSinVencidos');
-    div.innerHTML = '';
-    
+    const list = document.getElementById('listaVencidos');
     const hoy = new Date().toISOString().split('T')[0];
-    const vencidas = db_ventas.filter(v => v.estado === 'PENDIENTE' && v.fechaVencimiento < hoy);
+    const data = db_ventas.filter(v => v.estado === 'PENDIENTE' && v.fechaVencimiento < hoy);
+    list.innerHTML = '';
+    
+    if(data.length === 0) { document.getElementById('msgSinVencidos').classList.remove('hidden'); return; }
+    document.getElementById('msgSinVencidos').classList.add('hidden');
 
-    if(vencidas.length === 0) {
-        msg.classList.remove('hidden');
-        return;
-    }
-    msg.classList.add('hidden');
-
-    let html = '';
-    vencidas.forEach(v => {
+    data.forEach(v => {
         const c = db.find(x => x.id === v.idCliente);
-        html += `
-        <div class="card" style="border-left: 5px solid #ef4444; padding:10px;">
-            <div style="display:flex; justify-content:space-between;">
-                <div>
-                    <strong>${c ? c.negocio : 'Cliente Borrado'}</strong>
-                    <div style="color:#ef4444; font-size:0.8em;">Venció: ${v.fechaVencimiento}</div>
-                </div>
-                <div style="text-align:right;">
-                    <div style="font-weight:bold;">Q${v.saldoPendiente.toFixed(2)}</div>
-                    <button class="btn btn-sm btn-success" onclick="abrirModalAbono(${v.id})">Cobrar</button>
-                </div>
-            </div>
-        </div>`;
+        list.innerHTML += `<div class="card" style="padding:10px; border-left:4px solid red; display:flex; justify-content:space-between;"><div><strong>${c?c.negocio:'Borrado'}</strong><br><small>Venció: ${v.fechaVencimiento}</small></div><button class="btn btn-sm btn-success" onclick="abrirModalAbono(${v.id})">Cobrar Q${v.saldoPendiente}</button></div>`;
     });
-    div.innerHTML = html;
-}
-
-// Configuración Personal
-function guardarConfiguracion() {
-    userConfig.nombreVendedor = document.getElementById('configNombreVendedor').value;
-    userConfig.metaMensual = parseFloat(document.getElementById('configMeta').value);
-    
-    // Guardar lista de productos del datalist si se implementara edición
-    guardarDB();
-    alert("✅ Configuración guardada");
 }
 
 // ==========================================
-// 8. AGENDA SEMANAL (PLANIFICADOR)
+// 9. MODALES DE VENTA Y ABONO
 // ==========================================
-
-function renderAgenda() {
-    const container = document.getElementById('agendaContainer');
-    const selectPlan = document.getElementById('planDepto');
-    
-    // Llenar select de planificador
-    selectPlan.innerHTML = '<option value="">Seleccione...</option>';
-    LISTA_DEPARTAMENTOS.forEach(d => selectPlan.innerHTML += `<option value="${d}">${d}</option>`);
-
-    // Días de la semana
-    const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-    let html = '';
-
-    dias.forEach(dia => {
-        // Filtrar clientes asignados a este día
-        const clientesDia = db.filter(c => c.diaPreferido === dia && !c.eliminado);
-        const clinicas = clientesDia.filter(c => c.tipo === 'CLINICA').length;
-        const farmacias = clientesDia.filter(c => c.tipo === 'FARMACIA').length;
-
-        html += `
-        <div class="agenda-day-card" onclick="cargarRutaDia('${dia}')">
-            <div>
-                <div class="day-title">${dia}</div>
-                <div class="day-stats">${clientesDia.length} Clientes (🩺${clinicas} 💊${farmacias})</div>
-            </div>
-            <button class="btn-icon" style="background:#e0e7ff; color:#2563eb;">➡️</button>
-        </div>`;
-    });
-    container.innerHTML = html;
+function abrirModalVenta(id, n) { 
+    document.getElementById('ventaIdCliente').value=id; 
+    document.getElementById('modalVenta').style.display='flex';
+    // Llenar datalist
+    const dl = document.getElementById('lista-productos'); dl.innerHTML='';
+    userConfig.misProductos.forEach(p => dl.innerHTML += `<option value="${p}">`);
 }
-
-function cargarRutaDia(dia) {
-    if(!confirm(`¿Cargar la ruta del día ${dia}? Esto reemplazará la ruta actual.`)) return;
-    
-    const clientesDia = db.filter(c => c.diaPreferido === dia && !c.eliminado);
-    if(clientesDia.length === 0) { alert("No hay clientes asignados para este día."); return; }
-
-    ruta = clientesDia.map(c => c.id);
-    guardarDB();
-    alert(`✅ Ruta del ${dia} cargada con ${ruta.length} clientes.`);
-    mostrar('view-ruta');
-}
-
-function sugerirRutaLogica() {
-    const depto = document.getElementById('planDepto').value;
-    if(!depto) return;
-
-    if(!confirm(`¿Crear ruta automática para todo ${depto}?`)) return;
-
-    const clientesDepto = db.filter(c => c.departamento === depto && !c.eliminado);
-    ruta = clientesDepto.map(c => c.id);
-    guardarDB();
-    alert(`✅ Se agregaron ${ruta.length} clientes de ${depto} a la ruta.`);
-    mostrar('view-ruta');
-}
-
-// ==========================================
-// 9. FUNCIONES BASE (CRUD VENTAS, REPORTES, UTILIDADES)
-// ==========================================
-// Estas funciones se mantienen igual que la v12 pero integradas en el flujo v13
-
-function abrirModalVenta(id, nom) { document.getElementById('ventaIdCliente').value=id; document.getElementById('ventaClienteNombre').textContent=nom; document.getElementById('modalVenta').style.display='flex'; }
 function guardarVenta() {
     const id = parseInt(document.getElementById('ventaIdCliente').value);
     const m = parseFloat(document.getElementById('ventaMonto').value);
     if(!m) return;
-    const v = {id:Date.now(), idCliente:id, fechaVenta:obtenerFechaLocal(), concepto:document.getElementById('ventaConcepto').value, monto:m, saldoPendiente:m, tipo:document.getElementById('ventaTipo').value, estado:'PENDIENTE', fechaVencimiento:document.getElementById('ventaVencimiento').value};
+    const v = {
+        id: Date.now(), idCliente:id, fechaVenta:obtenerFechaLocal(), 
+        concepto:document.getElementById('ventaConcepto').value, monto:m, saldoPendiente:m, 
+        tipo:document.getElementById('ventaTipo').value, estado:'PENDIENTE', 
+        fechaVencimiento:document.getElementById('ventaVencimiento').value
+    };
     if(v.tipo==='CONTADO') { v.saldoPendiente=0; v.estado='PAGADO'; }
     db_ventas.push(v);
-    // Actualizar fecha
     const c = db.find(x=>x.id==id); if(c) c.ultimaVisita=obtenerFechaLocal();
-    guardarDB();
-    document.getElementById('modalVenta').style.display='none';
-    alert("Venta OK"); renderDashboard();
+    guardarDB(); document.getElementById('modalVenta').style.display='none'; alert("Venta OK"); renderDashboard();
 }
-function toggleVencimiento() { document.getElementById('divVencimiento').classList.toggle('hidden', document.getElementById('ventaTipo').value !== 'CREDITO'); }
+function toggleVencimiento() { 
+    document.getElementById('divVencimiento').classList.toggle('hidden', document.getElementById('ventaTipo').value !== 'CREDITO'); 
+}
 
-function abrirModalAbono(id) { document.getElementById('abonoIdVenta').value=id; document.getElementById('modalAbono').style.display='flex'; }
+function abrirModalAbono(id) { 
+    const v = db_ventas.find(x => x.id === id);
+    document.getElementById('abonoIdVenta').value=id; 
+    document.getElementById('lblSaldoPendiente').textContent = `Q${v.saldoPendiente.toFixed(2)}`;
+    document.getElementById('modalAbono').style.display='flex'; 
+}
 function guardarAbono() {
     const idV = parseInt(document.getElementById('abonoIdVenta').value);
     const m = parseFloat(document.getElementById('montoAbono').value);
     const v = db_ventas.find(x=>x.id==idV);
-    if(m > v.saldoPendiente) { alert("Monto excesivo"); return; }
+    if(m > v.saldoPendiente) { alert("Excesivo"); return; }
     db_abonos.push({id:Date.now(), idVenta:idV, fecha:obtenerFechaLocal(), monto:m});
     v.saldoPendiente -= m;
     if(v.saldoPendiente < 0.1) v.estado='PAGADO';
+    guardarDB(); document.getElementById('modalAbono').style.display='none'; mostrar('view-finanzas');
+}
+
+// ==========================================
+// 10. UTILIDADES Y NUBE
+// ==========================================
+function guardarConfiguracion() {
+    userConfig.nombreVendedor = document.getElementById('configNombreVendedor').value;
+    userConfig.metaMensual = parseFloat(document.getElementById('configMeta').value);
     guardarDB();
-    document.getElementById('modalAbono').style.display='none';
-    mostrar('view-finanzas'); // Refrescar
 }
-
-function cerrarModal(id) { document.getElementById(id).style.display='none'; }
-function limpiarFormulario() { document.getElementById('negocio').value=''; document.getElementById('telefono').value=''; }
-function toggleRuta(id) { const i=ruta.indexOf(id); if(i<0) ruta.push(id); else ruta.splice(i,1); guardarDB(); renderDashboard(); }
-function renderRuta() {
-    const c = document.getElementById('listaRutaContainer'); c.innerHTML='';
-    document.getElementById('rutaInfo').textContent = ruta.length + " clientes";
-    db.filter(x=>ruta.includes(x.id)).forEach((x,i) => {
-        const url = (x.lat && x.lat!=='MANUAL') ? `http://googleusercontent.com/maps.google.com/8{x.lat},${x.lng}` : '';
-        c.innerHTML += `<div class="card card-ruta"><strong>${i+1}. ${x.negocio}</strong><br><small>${x.direccion}</small><br><button class="btn btn-sm btn-info" onclick="window.open('${url}')">Ir</button></div>`;
-    });
+function cargarConfiguracionUI() {
+    document.getElementById('configNombreVendedor').value = userConfig.nombreVendedor;
+    document.getElementById('configMeta').value = userConfig.metaMensual;
+    if(document.getElementById('googleScriptUrl')) document.getElementById('googleScriptUrl').value = userConfig.googleUrl;
 }
-function optimizarRutaLineal() { alert("Para optimizar, asegúrese de tener GPS activo."); /* Lógica de optimización lineal aquí (copiar de v12 anterior si se requiere) */ }
-function abrirMapaRuta() { alert("Abriendo mapa global..."); }
-
-// UTILIDADES
 function cargarDepartamentosEnSelects() {
-    const s = document.getElementById('departamento'); s.innerHTML='<option value="">Seleccione...</option>';
-    LISTA_DEPARTAMENTOS.forEach(d=>s.innerHTML+=`<option value="${d}">${d}</option>`);
-    const s2 = document.getElementById('planDepto'); if(s2) { s2.innerHTML='<option value="">Seleccione...</option>'; LISTA_DEPARTAMENTOS.forEach(d=>s2.innerHTML+=`<option value="${d}">${d}</option>`); }
+    const s = document.getElementById('departamento'); s.innerHTML='<option value="">-</option>';
+    const p = document.getElementById('planDepto'); p.innerHTML='<option value="">Seleccione...</option>';
+    LISTA_DEPARTAMENTOS.forEach(d => {
+        s.innerHTML += `<option>${d}</option>`;
+        p.innerHTML += `<option>${d}</option>`;
+    });
 }
 function cargarMunicipios(d) {
     const s = document.getElementById('municipio'); s.innerHTML='';
-    if(MUNICIPIOS_POR_DEPARTAMENTO[d]) MUNICIPIOS_POR_DEPARTAMENTO[d].forEach(m=>s.innerHTML+=`<option value="${m}">${m}</option>`);
+    if(MUNICIPIOS_POR_DEPARTAMENTO[d]) MUNICIPIOS_POR_DEPARTAMENTO[d].forEach(m=>s.innerHTML+=`<option>${m}</option>`);
 }
+function toggleCamposMedicos() {
+    document.getElementById('camposMedicos').classList.toggle('hidden', document.getElementById('tipoNegocio').value !== 'CLINICA');
+}
+function toggleRuta(id) { const i=ruta.indexOf(id); if(i<0) ruta.push(id); else ruta.splice(i,1); guardarDB(); renderDashboard(); }
+function limpiarForm() { document.getElementById('negocio').value=''; document.getElementById('telefono').value=''; }
+function cerrarModal(id) { document.getElementById(id).style.display='none'; }
+function debounceBuscar() { clearTimeout(debounceTimer); debounceTimer = setTimeout(renderDashboard, 300); }
 function obtenerFechaLocal() { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().split('T')[0]; }
 function guardarDB() { 
     localStorage.setItem('db_clientes_v13', JSON.stringify(db)); 
@@ -600,9 +514,29 @@ function guardarDB() {
     localStorage.setItem('db_ruta_v13', JSON.stringify(ruta));
     localStorage.setItem('config_marijose_v13', JSON.stringify(userConfig));
 }
-function realizarBackupManual() {
-    const data = {db, db_ventas, db_abonos, ruta, userConfig};
-    const a = document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(data));
-    a.download="backup_marijose_"+obtenerFechaLocal()+".json"; document.body.appendChild(a); a.click(); a.remove();
+function realizarBackupManual() { const d={db, db_ventas, db_abonos, ruta, userConfig}; const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(d)); a.download="backup.json"; document.body.appendChild(a); a.click(); a.remove(); }
+
+// NUBE
+function sincronizarDrive() {
+    const url = document.getElementById('googleScriptUrl').value;
+    if(!url) return alert("Falta URL");
+    userConfig.googleUrl = url; guardarDB();
+    if(confirm("¿Subir?")) fetch(url, {method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"}, body:JSON.stringify({clientes:db, ventas:db_ventas})}).then(()=>alert("Enviado"));
 }
-// Fin de archivo
+function descargarDeDrive() {
+    const url = document.getElementById('googleScriptUrl').value;
+    if(!url) return alert("Falta URL");
+    if(confirm("¿Descargar?")) fetch(url).then(r=>r.json()).then(d=>{ if(d.clientes){ db=d.clientes; guardarDB(); location.reload(); }});
+}
+function generarReporteDiario() {
+    const h = obtenerFechaLocal(); const v = db.filter(c=>c.ultimaVisita===h);
+    let html = `<h3 style="text-align:center">Reporte ${h}</h3><table border="1" style="width:100%; border-collapse:collapse;"><tr><th>Cliente</th><th>Tipo</th><th>Tel</th></tr>`;
+    v.forEach(c=>html+=`<tr><td>${c.negocio}</td><td>${c.tipo}</td><td>${c.telefono}</td></tr>`);
+    html+=`</table>`;
+    document.getElementById('reporteOutput').innerHTML=html; window.print();
+}
+function exportarExcel() {
+    let csv = "Negocio,Tipo,Depto,Municipio,Telefono,Encargado\n";
+    db.filter(c=>!c.eliminado).forEach(c=>csv+=`"${c.negocio}",${c.tipo},${c.departamento},${c.municipio},${c.telefono},"${c.encargado}"\n`);
+    const a = document.createElement('a'); a.href="data:text/csv;charset=utf-8,"+encodeURI(csv); a.download="clientes.csv"; document.body.appendChild(a); a.click(); a.remove();
+}
