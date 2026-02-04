@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+    <title>Ruta Comercial GT v12 PRO</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+    <header class="no-print">
+        <div class="header-content">
+            <div class="header-info">
+                <div class="app-title">Ruta GT v12 PRO 🚀</div>
+                <div id="fecha-header" class="header-date"></div>
+                
+                <div class="dept-filter-container">
+                    <button class="dept-selector-header" onclick="toggleDeptDropdown()">📍 Filtro Deptos</button>
+                    <div id="deptDropdown" class="dept-dropdown hidden">
+                        <div class="dept-dropdown-header">
+                            <span>Seleccione:</span>
+                            <button onclick="toggleDeptDropdown()" class="close-dropdown">×</button>
+                        </div>
+                        <div class="dept-checkboxes-container"></div>
+                        <div class="dept-dropdown-footer">
+                            <button class="btn btn-primary btn-sm" onclick="aplicarFiltroDepartamentos()">Aplicar</button>
+                            <button class="btn btn-secondary btn-sm" onclick="limpiarFiltroDepartamentos()">Limpiar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-buttons">
+                <button class="btn-icon" onclick="realizarBackupManual()" title="Descargar Respaldo JSON">
+                    💾
+                </button>
+                <div id="syncStatus" class="sync-dot" title="Estado de Nube"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div id="modalVenta" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">💰 Nueva Venta</div>
+            <div class="modal-body">
+                <h4 id="ventaClienteNombre" style="text-align:center; color:#2563eb; margin-bottom:15px;"></h4>
+                <input type="hidden" id="ventaIdCliente">
+                
+                <div class="form-group">
+                    <label>Productos / Concepto</label>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="text" id="ventaConcepto" class="input-symmetric" placeholder="Ej: Amoxicilina..." list="lista-productos">
+                        <button class="btn-mic" onclick="activarDictado('ventaConcepto')">🎙️</button>
+                    </div>
+                    <datalist id="lista-productos">
+                        <option value="Amoxicilina 500mg"><option value="Pack Antibióticos"><option value="Vitamina C + Zinc">
+                    </datalist>
+                </div>
+                
+                <div class="form-group"><label>Monto Total (Q)</label><input type="number" id="ventaMonto" class="input-symmetric" step="0.01"></div>
+                <div class="form-group"><label>Tipo de Pago</label><select id="ventaTipo" class="input-symmetric" onchange="toggleVencimiento()"><option value="CONTADO">💵 Contado</option><option value="CREDITO">💳 Crédito (30 días)</option></select></div>
+                <div id="divVencimiento" class="hidden" style="background:#fff7ed; padding:15px; border-radius:12px; border:1px solid #ffedd5;"><label style="color:#c2410c;">Vencimiento:</label><input type="date" id="ventaVencimiento" class="input-symmetric"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" onclick="cerrarModal('modalVenta')">Cancelar</button>
+                <button class="btn btn-success btn-sm" id="btnGuardarVenta" onclick="guardarVenta()">Registrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalAbono" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">📉 Registrar Abono</div>
+            <div class="modal-body">
+                <div style="background:#f3f4f6; padding:15px; border-radius:12px; text-align:center;">
+                    <p style="color:#6b7280; font-size:0.9em;">Saldo Pendiente Actual</p>
+                    <div id="lblSaldoPendiente" style="font-weight:800; font-size:1.8em; color:#dc2626;">Q0.00</div>
+                </div>
+                <input type="hidden" id="abonoIdVenta">
+                <div class="form-group" style="margin-top:15px;"><label>Monto a Abonar (Q)</label><input type="number" id="montoAbono" class="input-symmetric" step="0.01"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" onclick="cerrarModal('modalAbono')">Cancelar</button>
+                <button class="btn btn-success btn-sm" onclick="guardarAbono()">Abonar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div id="view-dashboard" class="view-section">
+            <div class="stats-container">
+                <div class="stat-card"><div class="stat-number" id="statTotal">0</div><div class="stat-label">Clientes</div></div>
+                <div class="stat-card"><div class="stat-number" id="statHoy">0</div><div class="stat-label">Visitados</div></div>
+            </div>
+
+            <button class="btn btn-primary" onclick="nuevoCliente()">+ AGREGAR CLIENTE</button>
+            
+            <div class="card" style="margin-top:20px;">
+                <h3>🔍 Clientes</h3>
+                <div class="search-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="buscadorDashboard" class="search-input input-symmetric" placeholder="Buscar..." onkeyup="debounceBuscar()">
+                </div>
+                <div style="font-size:0.75em; display:flex; gap:15px; justify-content:center; color:#555; margin-bottom:10px;">
+                    <span>🟢 Al día</span> <span>🟡 Pendiente</span> <span>🔴 Riesgo</span>
+                </div>
+                <div id="listaClientes"></div>
+                <p id="msgVacio" class="msg-vacio hidden">No hay datos.</p>
+            </div>
+        </div>
+
+        <div id="view-finanzas" class="view-section hidden">
+            <div class="card card-financial">
+                <h3>💵 Finanzas y Comisiones</h3>
+                
+                <div style="margin-bottom:20px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.85em;"><span>Progreso Mes</span> <span id="lblMetaPorcentaje" style="color:#2563eb; font-weight:bold;">0%</span></div>
+                    <div class="progress-bg"><div class="progress-bar" id="progressBar" style="width: 0%"></div></div>
+                </div>
+
+                <div class="stats-container">
+                    <div class="stat-card highlight-green"><div class="stat-number" id="finCobradoMes">Q0.00</div><div class="stat-label">Cobrado Real</div></div>
+                    <div class="stat-card highlight-blue"><div class="stat-number" id="finComision">Q0.00</div><div class="stat-label">Tu Comisión</div></div>
+                </div>
+                
+                <div class="stats-container" style="margin-top:10px;">
+                     <div class="stat-card highlight-orange"><div class="stat-number" id="finCreditoCalle">Q0.00</div><div class="stat-label">Fiado en Calle</div></div>
+                </div>
+
+                <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px; background:#f8f9fa; padding:10px; border-radius:8px;">
+                    <div style="display:flex; gap:10px; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <label>Meta (Q):</label>
+                        <input type="number" id="configMeta" value="10000" class="input-symmetric" style="width:80px; padding:5px;">
+                        <label>Comisión (%):</label>
+                        <input type="number" id="configComision" value="5" class="input-symmetric" style="width:60px; padding:5px;">
+                    </div>
+                    <button class="btn btn-sm btn-info" style="width:100%" onclick="recalcularFinanzas()">🔄 Recalcular Todo</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📉 Cuentas por Cobrar</h3>
+                <div id="listaMorosos"></div>
+                <p id="msgSinDeuda" class="msg-vacio hidden">¡Todo cobrado!</p>
+            </div>
+        </div>
+
+        <div id="view-ruta" class="view-section hidden">
+            <div class="card card-ruta">
+                <h3>📍 Ruta del Día</h3>
+                <div class="ruta-stats" style="margin-bottom:10px;">
+                    <span id="rutaInfo" style="font-weight:bold; color:#f59e0b;">0 clientes</span>
+                    <span id="distanciaRuta" style="font-size:0.9em; color:#666; margin-left:10px;"></span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-primary" onclick="abrirMapaRuta()">🗺️ Ver Mapa</button>
+                    <button class="btn btn-success" onclick="optimizarRuta()">✨ Optimizar (GPS)</button>
+                </div>
+                <p style="font-size:0.7em; color:#666; margin-top:5px;">* Optimizar ordena los clientes del más cercano al más lejano.</p>
+            </div>
+            <div id="listaRutaContainer"></div>
+        </div>
+
+        <div id="view-reportes" class="view-section hidden">
+            
+            <div class="card no-print" style="border-left: 5px solid #0f9d58;">
+                <h3 style="color:#0f9d58;">☁️ Sincronización Google</h3>
+                <p style="font-size:0.8em; color:#555;">Conecta tu hoja de cálculo para tener la Base de Datos en la nube (Excel Online).</p>
+                
+                <div class="form-group">
+                    <input type="text" id="googleScriptUrl" class="input-symmetric" placeholder="Pega aquí tu URL del Google Script" style="font-size:0.8em;">
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-cloud-up" onclick="sincronizarDrive()">☁️ Subir Todo</button>
+                    <button class="btn btn-cloud-down" onclick="descargarDeDrive()">☁️ Bajar Todo</button>
+                </div>
+            </div>
+
+            <div class="card no-print">
+                <h3>📄 Reportes Locales</h3>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <button class="btn btn-primary" onclick="generarReporteDiario()">🖨️ Imprimir Visitas de Hoy</button>
+                    <button class="btn btn-dark" onclick="exportarExcel()">📊 Descargar Excel (.CSV)</button>
+                    <button class="btn btn-secondary" onclick="realizarBackupManual()">💾 Backup Completo (JSON)</button>
+                </div>
+            </div>
+            <div id="reporteOutput" class="hidden" style="background:white; padding:20px;"></div>
+        </div>
+
+        <div id="view-form" class="view-section hidden">
+            <div class="card">
+                <h3 id="tituloForm">Cliente</h3>
+                <input type="hidden" id="idCliente">
+                <div class="form-group"><label>Negocio</label><input type="text" id="negocio" class="input-symmetric"></div>
+                <div class="form-group"><label>Depto</label><select id="departamento" class="input-symmetric" onchange="cargarMunicipiosPorDepartamento(this.value)"></select></div>
+                <div class="form-group"><label>Municipio</label><select id="municipio" class="input-symmetric"></select></div>
+                <div class="form-group"><label>Dirección</label><input type="text" id="direccion" class="input-symmetric"></div>
+                <div class="form-group"><label>Teléfono</label><input type="tel" id="telefono" class="input-symmetric" maxlength="8"></div>
+                <div class="form-group"><label>Encargado</label><input type="text" id="encargado" class="input-symmetric"></div>
+                <input type="hidden" id="lat"><input type="hidden" id="lng">
+                <div id="gpsStatus" style="font-weight:bold; color:#666; margin:10px 0; text-align:center;">📍 GPS: No configurado</div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-secondary" onclick="mostrar('view-dashboard')">Cancelar</button>
+                    <button class="btn btn-primary" onclick="irGPS()">GPS ➡️</button>
+                    <button class="btn btn-success" onclick="guardarCliente()">💾 Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-gps" class="view-section hidden">
+            <div class="card">
+                <h3>Ubicación</h3>
+                <button class="btn btn-primary" onclick="obtenerGPS()">📡 Obtener Automático</button>
+                <p id="gpsTxt" style="text-align:center; margin:15px 0;">Esperando...</p>
+                <input type="text" id="linkMan" placeholder="Link de Maps..." class="input-symmetric">
+                <button class="btn btn-sm btn-secondary" style="margin-top:5px;" onclick="usarManual()">Guardar Manual</button>
+                <hr style="margin:20px 0;">
+                <button class="btn btn-secondary" onclick="mostrar('view-form')">⬅️ Volver</button>
+            </div>
+        </div>
+
+        <div id="view-papelera" class="view-section hidden">
+            <div class="card" style="border-left: 5px solid #6b7280;">
+                <h3>🗑️ Papelera</h3>
+                <div id="listaPapelera"></div>
+                <button class="btn btn-danger" onclick="vaciarPapelera()" style="margin-top:20px;">Vaciar Todo</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="nav-bar no-print">
+        <button class="nav-btn active" id="nav-home" onclick="mostrar('view-dashboard')"><span>🏠</span>Inicio</button>
+        <button class="nav-btn" id="nav-ruta" onclick="mostrar('view-ruta')"><span>🚚</span>Ruta</button>
+        <button class="nav-btn" id="nav-finanzas" onclick="mostrar('view-finanzas')"><span>💰</span>Finanzas</button>
+        <button class="nav-btn" id="nav-rep" onclick="mostrar('view-reportes')"><span>☁️</span>Nube</button>
+        <button class="nav-btn" id="nav-trash" onclick="mostrar('view-papelera')"><span>🗑️</span>Papelera</button>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    </script>
+</body>
+</html>
