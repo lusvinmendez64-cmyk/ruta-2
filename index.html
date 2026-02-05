@@ -4,22 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#2563eb">
-    <title>Ruta Marijose v13.1</title>
+    <title>Ruta Marijose v14</title>
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/estilos.css"> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/estilos.css">
 </head>
 <body>
 
     <header class="no-print">
         <div class="header-content">
             <div class="header-info">
-                <div class="app-title">Marijose Jhire v13.1 🩺</div>
+                <div class="app-title">Marijose Jhire v14 🩺</div>
                 <div id="fecha-header" class="header-date"></div>
             </div>
             <div class="header-buttons">
-                <div id="alertaCobros" class="badge-alert hidden" onclick="mostrar('view-finanzas')">
-                    🔔 <span id="cantVencidas">0</span>
+                <div id="alertaAmarilla" class="badge-alert yellow hidden" onclick="mostrar('view-finanzas')" title="Próximos a vencer">
+                    ⚠️ <span id="cantProximos">0</span>
+                </div>
+                <div id="alertaRoja" class="badge-alert red hidden" onclick="mostrar('view-finanzas')" title="Vencidos">
+                    🚨 <span id="cantVencidos">0</span>
                 </div>
                 <button class="btn-icon" onclick="realizarBackupManual()" title="Guardar Backup">💾</button>
             </div>
@@ -49,15 +56,12 @@
                     <h3>🔍 Cartera</h3>
                     <select id="filtroTipo" class="input-mini" onchange="renderDashboard()">
                         <option value="">Todos</option>
-                        <option value="FARMACIA">💊 Farmacia</option>
-                        <option value="CLINICA">🩺 Clínica</option>
+                        <option value="FARMACIA">💊 Farmacias</option>
+                        <option value="CLINICA">🩺 Clínicas</option>
                     </select>
                 </div>
                 
-                <div class="search-container">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="buscadorDashboard" class="search-input input-symmetric" placeholder="Buscar doctor, farmacia..." onkeyup="debounceBuscar()">
-                </div>
+                <input type="text" id="buscadorDashboard" class="input-symmetric" placeholder="Buscar..." onkeyup="debounceBuscar()">
                 <div id="listaClientes"></div>
                 <p id="msgVacio" class="msg-vacio hidden">Sin resultados.</p>
             </div>
@@ -65,27 +69,22 @@
 
         <div id="view-agenda" class="view-section hidden">
             <div class="card" style="border-left: 5px solid #8b5cf6;">
-                <h3>📅 Planificador de Rutas</h3>
-                <p style="font-size:0.8em; color:#666; margin-bottom:15px;">
-                    Genera tu ruta del día seleccionando un departamento o un día de la semana.
-                </p>
+                <h3>📅 Planificador Inteligente</h3>
                 
-                <div style="background:#f5f3ff; padding:15px; border-radius:12px; margin-bottom:20px;">
-                    <label style="font-weight:bold; color:#5b21b6;">📍 Cargar por Departamento</label>
+                <div style="background:#f5f3ff; padding:15px; border-radius:10px; margin-bottom:15px;">
+                    <label style="font-weight:bold; color:#5b21b6;">Cargar por Departamento</label>
                     <div style="display:flex; gap:10px; margin-top:5px;">
                         <select id="planDepto" class="input-symmetric" style="margin:0;"></select>
                     </div>
                     <button class="btn btn-info" style="width:100%; margin-top:10px;" onclick="cargarRutaPorDepto()">
-                        ⚡ Cargar Ruta Sugerida
+                        ⚡ Cargar Ruta Lógica
                     </button>
                     <p style="font-size:0.7em; color:#666; margin-top:5px;">
-                        * Agrupa automáticamente los municipios para un orden lógico.
+                        * Ordena automáticamente por municipio para ahorrar gasolina.
                     </p>
                 </div>
 
-                <h4 style="margin-bottom:10px;">Tu Semana</h4>
-                <div id="agendaContainer">
-                    </div>
+                <div id="agendaContainer"></div>
             </div>
         </div>
 
@@ -95,104 +94,106 @@
                 <div class="ruta-stats">
                     <span id="rutaInfo" style="font-weight:bold; color:#f59e0b;">0 clientes</span>
                     <button class="btn btn-sm btn-success" style="float:right;" onclick="optimizarRutaGPS()">
-                        📡 Optimizar con GPS
+                        📡 Optimizar GPS
                     </button>
                 </div>
                 <div style="clear:both; margin-bottom:10px;"></div>
-                
                 <div id="listaRutaContainer"></div>
-                
                 <button class="btn btn-primary" style="margin-top:15px;" onclick="abrirMapaRuta()">🗺️ Ver Mapa Completo</button>
                 <button class="btn btn-danger" style="margin-top:5px;" onclick="limpiarRuta()">🗑️ Limpiar Ruta</button>
             </div>
         </div>
 
         <div id="view-finanzas" class="view-section hidden">
-            <div class="card" style="background:#f0f9ff; border:1px solid #bae6fd;">
-                <h3>⚙️ Configuración Visitador</h3>
-                <div class="form-group">
-                    <label>Tu Nombre (Para WhatsApp):</label>
-                    <input type="text" id="configNombreVendedor" class="input-symmetric" placeholder="Ej: Juan Pérez" onchange="guardarConfiguracion()">
-                </div>
-                <div class="form-group">
-                    <label>Meta de Ventas (Q):</label>
-                    <input type="number" id="configMeta" class="input-symmetric" value="15000" onchange="guardarConfiguracion()">
-                </div>
-            </div>
-
             <div class="card card-financial">
                 <h3>💵 Estado Financiero</h3>
                 <div class="chart-wrapper">
                     <div class="donut-chart" id="graficoFinanciero">
                         <div class="center-text">
-                            <span id="txtPorcentajeCobro">0%</span><br><small>Cobrado</small>
+                            <span id="txtPorcentajeCobro">0%</span><br><small>Recuperado</small>
                         </div>
                     </div>
                     <div class="chart-legend">
-                        <div><span class="dot green"></span> Efectivo</div>
+                        <div><span class="dot green"></span> Cobrado</div>
                         <div><span class="dot orange"></span> Crédito</div>
                         <div><span class="dot red"></span> Vencido</div>
                     </div>
                 </div>
                 <div class="stats-container">
-                    <div class="stat-card"><div class="stat-number" id="finCobrado" style="color:#10b981;">Q0.00</div><div class="stat-label">Cobrado</div></div>
-                    <div class="stat-card"><div class="stat-number" id="finCredito" style="color:#f59e0b;">Q0.00</div><div class="stat-label">Crédito</div></div>
+                    <div class="stat-card highlight-green">
+                        <div class="stat-number" id="finCobrado">Q0.00</div>
+                        <div class="stat-label">Efectivo</div>
+                    </div>
+                    <div class="stat-card highlight-blue">
+                        <div class="stat-number" id="finComision">Q0.00</div>
+                        <div class="stat-label">Mi Comisión</div>
+                    </div>
                 </div>
             </div>
 
             <div class="card" style="border-left: 5px solid #ef4444;">
-                <h3>🚨 Facturas Vencidas</h3>
+                <h3>🚨 Vencidos (Urgente)</h3>
                 <div id="listaVencidos"></div>
-                <p id="msgSinVencidos" class="msg-vacio hidden">Todo al día.</p>
+                <p id="msgSinVencidos" class="msg-vacio hidden">Al día.</p>
+            </div>
+
+            <div class="card" style="border-left: 5px solid #f59e0b;">
+                <h3>⚠️ Próximos a Vencer (3 Días)</h3>
+                <div id="listaProximos"></div>
+                <p id="msgSinProximos" class="msg-vacio hidden">Nada próximo.</p>
+            </div>
+
+            <div class="card" style="background:#f8fafc;">
+                <h3>⚙️ Configuración</h3>
+                <div class="form-group">
+                    <label>Nombre Visitador:</label>
+                    <input type="text" id="configNombreVendedor" class="input-symmetric" placeholder="Tu nombre" onchange="guardarConfiguracion()">
+                </div>
+                <div class="form-group">
+                    <label>Meta Mensual (Q):</label>
+                    <input type="number" id="configMeta" class="input-symmetric" value="15000" onchange="guardarConfiguracion()">
+                </div>
+                <div class="form-group">
+                    <label>% Comisión:</label>
+                    <input type="number" id="configComision" class="input-symmetric" value="3" onchange="guardarConfiguracion()">
+                </div>
             </div>
         </div>
 
         <div id="view-form" class="view-section hidden">
             <div class="card">
-                <h3 id="tituloForm">Cliente</h3>
+                <h3 id="tituloForm">Datos Cliente</h3>
                 <input type="hidden" id="idCliente">
                 
                 <div class="form-group">
-                    <label>Tipo</label>
+                    <label>Tipo de Negocio</label>
                     <select id="tipoNegocio" class="input-symmetric" onchange="toggleCamposMedicos()">
                         <option value="FARMACIA">💊 Farmacia</option>
-                        <option value="CLINICA">🩺 Clínica</option>
+                        <option value="CLINICA">🩺 Clínica / Sanatorio</option>
                         <option value="DISTRIBUIDORA">📦 Distribuidora</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Negocio</label><input type="text" id="negocio" class="input-symmetric"></div>
+                <div class="form-group"><label>Negocio *</label><input type="text" id="negocio" class="input-symmetric"></div>
                 
-                <div id="camposMedicos" class="hidden" style="background:#f0f9ff; padding:10px; border-radius:8px; margin-bottom:15px;">
+                <div id="camposMedicos" class="hidden" style="background:#e0f2fe; padding:10px; border-radius:8px; margin-bottom:10px;">
                     <div class="form-group"><label>Especialidad</label><input type="text" id="especialidad" class="input-symmetric"></div>
                     <div class="form-group"><label>Horarios Visita</label><input type="text" id="horarioVisita" class="input-symmetric"></div>
                 </div>
 
                 <div class="form-group">
-                    <label>Ubicación</label>
+                    <label>Ubicación GPS</label>
                     <div style="display:flex; gap:5px;">
-                        <input type="text" id="gpsDisplay" class="input-symmetric" readonly placeholder="Sin GPS" style="background:#eee;">
-                        <button class="btn-icon btn-primary" onclick="capturarGPSAltaPrecision()">📡</button>
+                        <input type="text" id="gpsDisplay" class="input-symmetric" readonly placeholder="Sin datos" style="background:#eee;">
+                        <button class="btn-icon btn-primary" onclick="capturarGPS()">📡</button>
                     </div>
                     <input type="hidden" id="lat"><input type="hidden" id="lng">
                 </div>
 
-                <div class="form-group"><label>Depto</label><select id="departamento" class="input-symmetric" onchange="cargarMunicipios(this.value)"></select></div>
+                <div class="form-group"><label>Departamento</label><select id="departamento" class="input-symmetric" onchange="cargarMunicipios(this.value)"></select></div>
                 <div class="form-group"><label>Municipio</label><select id="municipio" class="input-symmetric"></select></div>
                 <div class="form-group"><label>Teléfono</label><input type="tel" id="telefono" class="input-symmetric"></div>
-                <div class="form-group"><label>Encargado (Dr/Lic)</label><input type="text" id="encargado" class="input-symmetric"></div>
-                
-                <div class="form-group">
-                    <label>Día de Visita</label>
-                    <select id="diaVisita" class="input-symmetric">
-                        <option value="">-</option>
-                        <option value="Lunes">Lunes</option>
-                        <option value="Martes">Martes</option>
-                        <option value="Miércoles">Miércoles</option>
-                        <option value="Jueves">Jueves</option>
-                        <option value="Viernes">Viernes</option>
-                        <option value="Sábado">Sábado</option>
-                    </select>
-                </div>
+                <div class="form-group"><label>Encargado</label><input type="text" id="encargado" class="input-symmetric"></div>
+                <div class="form-group"><label>Día Visita</label><select id="diaVisita" class="input-symmetric"><option value="">-</option><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option><option>Sábado</option></select></div>
 
                 <div style="display:flex; gap:10px; margin-top:20px;">
                     <button class="btn btn-secondary" onclick="mostrar('view-dashboard')">Cancelar</button>
@@ -208,9 +209,10 @@
                     <button class="btn btn-cloud-up" onclick="sincronizarDrive()">☁️ Subir</button>
                     <button class="btn btn-cloud-down" onclick="descargarDeDrive()">☁️ Bajar</button>
                 </div>
-                <input type="text" id="googleScriptUrl" class="input-symmetric" placeholder="URL Script" style="margin-top:10px;">
+                <input type="text" id="googleScriptUrl" class="input-symmetric" placeholder="URL Script Google" style="margin-top:10px;">
                 <hr>
-                <button class="btn btn-primary" onclick="generarReporteDiario()">📄 Imprimir Reporte</button>
+                <button class="btn btn-primary" onclick="generarReporteDiario()">📄 Imprimir Reporte Diario</button>
+                <button class="btn btn-dark" onclick="exportarExcel()">📊 Exportar Excel</button>
             </div>
             <div id="reporteOutput" class="hidden" style="background:white; padding:20px;"></div>
         </div>
@@ -227,28 +229,74 @@
 
     <div id="modalVenta" class="modal">
         <div class="modal-content">
-            <div class="modal-header">Venta</div>
+            <div class="modal-header">Nueva Venta</div>
             <div class="modal-body">
                 <input type="hidden" id="ventaIdCliente">
-                <input type="text" id="ventaConcepto" class="input-symmetric" placeholder="Productos" list="lista-productos">
-                <input type="number" id="ventaMonto" class="input-symmetric" placeholder="Q Monto">
-                <select id="ventaTipo" class="input-symmetric" onchange="toggleVencimiento()"><option value="CONTADO">Contado</option><option value="CREDITO">Crédito</select>
-                <div id="divVencimiento" class="hidden"><input type="date" id="ventaVencimiento" class="input-symmetric"></div>
+                <div class="form-group"><label>Concepto</label><input type="text" id="ventaConcepto" class="input-symmetric" list="lista-productos"></div>
+                <div class="form-group"><label>Monto</label><input type="number" id="ventaMonto" class="input-symmetric"></div>
+                <div class="form-group"><label>Pago</label><select id="ventaTipo" class="input-symmetric" onchange="toggleVencimiento()"><option value="CONTADO">Contado</option><option value="CREDITO">Crédito</select></div>
+                <div id="divVencimiento" class="hidden"><label>Vence:</label><input type="date" id="ventaVencimiento" class="input-symmetric"></div>
                 <datalist id="lista-productos"></datalist>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" onclick="cerrarModal('modalVenta')">X</button><button class="btn btn-success" onclick="guardarVenta()">Guardar</button></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalVenta')">Cancelar</button>
+                <button class="btn btn-success" onclick="guardarVenta()">Guardar</button>
+            </div>
         </div>
     </div>
 
     <div id="modalAbono" class="modal">
         <div class="modal-content">
-            <div class="modal-header">Abonar</div>
+            <div class="modal-header">Registrar Abono</div>
             <div class="modal-body">
-                <p>Pendiente: <b id="lblSaldoPendiente" style="color:red"></b></p>
+                <p>Saldo Pendiente: <b id="lblSaldoPendiente" style="color:#ef4444; font-size:1.2em;"></b></p>
                 <input type="hidden" id="abonoIdVenta">
-                <input type="number" id="montoAbono" class="input-symmetric" placeholder="Q Monto">
+                
+                <div class="form-group">
+                    <label>Monto a Abonar (Q):</label>
+                    <input type="number" id="montoAbono" class="input-symmetric" onkeyup="calcularVuelto()">
+                </div>
+                
+                <div style="background:#ecfdf5; padding:10px; border-radius:8px; border:1px solid #6ee7b7;">
+                    <label style="font-size:0.8em; color:#065f46;">¿Con cuánto paga?</label>
+                    <input type="number" id="pagaCon" class="input-symmetric" placeholder="Ej: 500" onkeyup="calcularVuelto()" style="margin-bottom:0;">
+                    <div style="margin-top:5px; font-weight:bold; color:#059669;">Vuelto: Q<span id="lblVuelto">0.00</span></div>
+                </div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" onclick="cerrarModal('modalAbono')">X</button><button class="btn btn-success" onclick="guardarAbono()">Abonar</button></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalAbono')">Cancelar</button>
+                <button class="btn btn-success" onclick="guardarAbono()">Confirmar Abono</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalVisita" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Registrar Visita (Sin Venta)</div>
+            <div class="modal-body">
+                <input type="hidden" id="visitaIdCliente">
+                <div class="form-group">
+                    <label>Motivo</label>
+                    <select id="visitaMotivo" class="input-symmetric">
+                        <option>Promoción / Muestras</option>
+                        <option>Cobranza</option>
+                        <option>Saludo / Cortesía</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Resultado</label>
+                    <select id="visitaResultado" class="input-symmetric">
+                        <option>Contactado con éxito</option>
+                        <option>Encargado no estaba</option>
+                        <option>Cerrado</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Notas</label><input type="text" id="visitaNotas" class="input-symmetric" placeholder="Comentarios..."></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModal('modalVisita')">Cancelar</button>
+                <button class="btn btn-success" onclick="guardarVisita()">Registrar</button>
+            </div>
         </div>
     </div>
 
